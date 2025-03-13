@@ -220,7 +220,7 @@ if __name__ == '__main__':
 
 
                 # ajuste de tamanho de fonte
-                font = ImageFont.truetype("/arial.ttf", 20)
+                font = ImageFont.truetype("./arial.ttf", 20)
 
                 # imagem alvo
                 image = Image.open(foto_rosto)
