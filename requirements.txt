@@ -1,5 +1,4 @@
-streamlit
-boto3
-matplotlib
-pillow
-difflib
+streamlit==1.43.0
+boto3==1.37.8
+matplotlib==3.9.0
+pillow==10.3.0
