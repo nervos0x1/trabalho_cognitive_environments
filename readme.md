@@ -11,6 +11,6 @@ A validação ocorre por meio de **detecção de vivacidade (liveness)** e compa
 4. **Comparação de Fotos**: O sistema compara a selfie com a foto da CNH para validar a identidade.  
 5. **Validação Final**: Se houver correspondência, o sistema busca o **endereço do cliente** com base nos dados do documento.  
 
-
+### Deploy: https://trabalhocognitiveenvironments-9tpxd8kakwfcankk4qvexf.streamlit.app/
 
 ![alt text](image-1.png)
