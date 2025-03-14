@@ -11,10 +11,11 @@ def config():
     st.set_page_config(
         page_title="FACE & TEXT EXTRACTION",
         page_icon=r"./logo.jpeg",
-        #layout="wide",
         initial_sidebar_state="expanded",
     )
 
+
+# side bar que para enviar os 3 arquivos e colocar parte do endereço para fazer um match com a conta
 def upload_documentos(): 
 
     st.title("Upload de Documentos")
@@ -44,6 +45,7 @@ def upload_documentos():
                 st.session_state.imagem_expandida = img
                 st.session_state.legenda_expandida = legenda
 
+    # botao para fechar as imagens expandidas
     if st.session_state.imagem_expandida:
         st.image(st.session_state.imagem_expandida, caption=st.session_state.legenda_expandida, use_container_width=True)
         if st.button("Fechar imagem"):
@@ -55,17 +57,13 @@ def upload_documentos():
 
     return (cnh, foto_rosto, conta, endereco)
 
+
+#usando o textract da aws para pegar todos os texto do arquivo enviado.
 def processar_arquivo(uploaded_file):
 
     if uploaded_file is not None:
         # Converter arquivo em bytes
         bytes_test = uploaded_file.getvalue()
-
-        # Exibir a imagem
-        img = mpimg.imread(io.BytesIO(bytes_test), format='jpg')  # Ajuste o formato conforme necessário
-        plt.imshow(img)
-        plt.axis('off')
-        plt.show()
 
         # Configuração do Textract
         session = boto3.Session(aws_access_key_id=ACCESS_ID, aws_secret_access_key=ACCESS_KEY)
@@ -74,7 +72,7 @@ def processar_arquivo(uploaded_file):
 
         return response
 
-
+#o nome da pessoa no cnh fica abaixo da frase "1ª HABILITAÇÃO", entao essa função pegar o nome apos essa frase
 def encontrar_nome(blocks, referencia="1ª HABILITAÇÃO"):
     capturar = False
     
@@ -85,8 +83,9 @@ def encontrar_nome(blocks, referencia="1ª HABILITAÇÃO"):
             if block["Text"] == referencia:
                 capturar = True  # Ativa a captura para a próxima iteração
     
-    return None  # Retorna None se não encontrar uma próxima frase
+    return None 
 
+# igualmente a função a cima, apos a frase "9 CAT HAB" é o CPF
 def encontrar_cpf(blocks, referencias=("9 CAT HAB", "9 CAT. HAB.")):
     capturar = False
     cpf_encontrado = None
@@ -108,9 +107,9 @@ def processar_imagem(file_source, file_target):
         raise ValueError("Ambos os arquivos de imagem devem ser fornecidos.")
 
     try:
-        # Lendo os arquivos de imagem em bytes corretamente
-        bytes_file_source = file_source.getvalue()  # Usando getvalue() para pegar os bytes da imagem
-        bytes_file_target = file_target.getvalue()  # O mesmo para a imagem alvo
+        # Lendo os arquivos de imagem em bytes, como ja foi lido pelo streamlit, faço a releitura para usar na aws
+        bytes_file_source = file_source.getvalue() 
+        bytes_file_target = file_target.getvalue() 
 
 
     except Exception as e:
@@ -122,13 +121,11 @@ def processar_imagem(file_source, file_target):
 
 
 
-    # Iniciando a sessão AWS
-    session = boto3.Session(aws_access_key_id=ACCESS_ID, aws_secret_access_key=ACCESS_KEY)
 
-    # Criando o cliente do Rekognition
+    session = boto3.Session(aws_access_key_id=ACCESS_ID, aws_secret_access_key=ACCESS_KEY)
     client = session.client("rekognition", region_name=region)
 
-    # Realizando a requisição de comparação de faces
+    # Realizando a comparação das faces
     try:
         response = client.compare_faces(
             SourceImage={'Bytes': bytes_file_source},
@@ -139,7 +136,7 @@ def processar_imagem(file_source, file_target):
 
     return response
 
-
+# aqui a gente faz um match, entao enviamos a palavra que queremos encontrar e o json que contem todo o texto.
 def encontrar_nome_conta(cnh_nome, texto):
 
     for linha in texto:
@@ -154,7 +151,7 @@ def encontrar_nome_conta(cnh_nome, texto):
 
 
 
-
+#recebendo a key que esta no secret do streamlit
 ACCESS_ID = st.secrets["ACCESS_ID"]
 ACCESS_KEY = st.secrets["ACCESS_KEY"]
 region = st.secrets["REGION"]
@@ -166,15 +163,20 @@ if __name__ == '__main__':
 
     st.title('Trabalho - Cognitive Environments')
 
+    #recendo as imagens e textos do front-end
     cnh, foto_rosto, conta, endereco = upload_documentos()
 
     
     st.title("Informações capturadas")
     
     if cnh: 
-        # pegar textos
+        
+        '''
+        recebendo a imagen do front, enviado para o textract e 
+        usando as funções para capturar o nome e cpf como ja mencionado 
+        '''
         response_cnh = processar_arquivo(cnh)
-        blocks  = response_cnh["Blocks"]
+        blocks  = response_cnh["Blocks"] 
         nome_cnh = encontrar_nome(blocks)
         nome_cnh_str = str(nome_cnh)
 
@@ -183,11 +185,12 @@ if __name__ == '__main__':
         st.write('Nome: ', nome_cnh_str)
         st.write('CPF: ',cpf)
 
+        #quando inserido a foto e a cnh inciamos essa função para fazer a comparação das imagens.
         if foto_rosto and cnh:
             comparacao = processar_imagem(cnh, foto_rosto)
           
             face_matches = comparacao.get("FaceMatches", [])
-            threshold = 90
+            threshold = 90 # threshold definido no trabalho.
 
             if not face_matches:
                 st.write("As imagens não correspondem à mesma pessoa.")
@@ -211,16 +214,15 @@ if __name__ == '__main__':
                     width = imgWidth * box['Width']
                     height = imgHeight * box['Height']
 
-                    # Desenhando o retângulo
                     draw.rectangle([left, top, left + width, top + height], outline='#00d400')
 
-                    # Exibindo a imagem com a anotação
+                    # Exibindo a imagem 
                     st.image(image_cnh, caption="Imagem com Caixa Delimitadora", use_container_width=True)
 
 
 
                 # ajuste de tamanho de fonte
-                font = ImageFont.truetype("./arial.ttf", 20)
+                font = ImageFont.truetype("./arial.ttf", 25)
 
                 # imagem alvo
                 image = Image.open(foto_rosto)
@@ -242,20 +244,26 @@ if __name__ == '__main__':
 
                     st.image(image, caption="Imagem com Caixa Delimitadora", use_container_width=True)
 
+    '''
+    quando a pessoa coloca a conta, cnh, e parte do texto do seu endereço que esta na conta. Fazemos uma match, 
+    com as informações ja obtida pela cnh e verifcamos com a conta inserida.
+    '''
     if conta and cnh and endereco:
         response_conta = processar_arquivo(conta)
         texto_extraido_conta = [block["Text"] for block in response_conta["Blocks"] if block["BlockType"] == "LINE"]
 
         
         nome = encontrar_nome_conta(nome_cnh_str, texto_extraido_conta)
-
+        
+        #verificando se a conta tem o mesmo nome que na CNH.
         if nome:
             st.write('Nome na Conta: ', nome)
         else:
             st.write('Nome não correspontente com a CNH.')
 
+        #verificando se o texto informado bate com que esta na conta. 
+        # pensamos nessa solução, pois queremos verifica em qualquer modelo de conta, ao inves de ter apenas um modelo.
         rua = encontrar_nome_conta(endereco, texto_extraido_conta)
-
         if rua:
             st.write('Endereço da conta: ', rua)
         else:
