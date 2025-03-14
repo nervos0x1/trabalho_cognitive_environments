@@ -12,5 +12,6 @@ A validação ocorre por meio de **detecção de vivacidade (liveness)** e compa
 5. **Validação Final**: Se houver correspondência, o sistema busca o **endereço do cliente** com base nos dados do documento.  
 
 ### Deploy: https://trabalhocognitiveenvironments-9tpxd8kakwfcankk4qvexf.streamlit.app/
+### Git Hub: https://github.com/nervos0x1/trabalho_cognitive_environments/tree/main?tab=readme-ov-file
 
 ![alt text](image-1.png)
