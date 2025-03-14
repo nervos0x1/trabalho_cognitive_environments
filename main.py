@@ -171,10 +171,10 @@ if __name__ == '__main__':
     
     if cnh: 
         
-        '''
-        recebendo a imagen do front, enviado para o textract e 
-        usando as funções para capturar o nome e cpf como ja mencionado 
-        '''
+        
+        #recebendo a imagen do front, enviado para o textract e 
+        #usando as funções para capturar o nome e cpf como ja mencionado 
+
         response_cnh = processar_arquivo(cnh)
         blocks  = response_cnh["Blocks"] 
         nome_cnh = encontrar_nome(blocks)
@@ -244,10 +244,10 @@ if __name__ == '__main__':
 
                     st.image(image, caption="Imagem com Caixa Delimitadora", use_container_width=True)
 
-    '''
-    quando a pessoa coloca a conta, cnh, e parte do texto do seu endereço que esta na conta. Fazemos uma match, 
-    com as informações ja obtida pela cnh e verifcamos com a conta inserida.
-    '''
+    
+    #quando a pessoa coloca a conta, cnh, e parte do texto do seu endereço que esta na conta. Fazemos uma match, 
+    #com as informações ja obtida pela cnh e verifcamos com a conta inserida.
+
     if conta and cnh and endereco:
         response_conta = processar_arquivo(conta)
         texto_extraido_conta = [block["Text"] for block in response_conta["Blocks"] if block["BlockType"] == "LINE"]
